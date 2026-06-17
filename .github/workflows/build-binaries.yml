@@ -77,6 +77,26 @@ jobs:
           git -C .build/privacy-filter.cpp checkout "${{ steps.upstream.outputs.ref }}"
           git -C .build/privacy-filter.cpp submodule update --init --recursive
 
+      - name: Patch Windows MSVC flags
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path(".build/privacy-filter.cpp/CMakeLists.txt")
+          text = path.read_text()
+          text = text.replace(
+              "target_compile_options(pf PRIVATE -Wall -Wextra)",
+              "if (NOT MSVC)\n    target_compile_options(pf PRIVATE -Wall -Wextra)\nendif()",
+          )
+          text = text.replace(
+              "    target_compile_options(pf-cli PRIVATE -Wall -Wextra)",
+              "    if (NOT MSVC)\n        target_compile_options(pf-cli PRIVATE -Wall -Wextra)\n    endif()",
+          )
+          path.write_text(text)
+          PY
+
       - name: Configure
         shell: bash
         run: |
@@ -112,6 +132,7 @@ jobs:
 
           if [ "${{ runner.os }}" = "Windows" ]; then
             cp .build/privacy-filter.cpp/build/Release/pf-cli.exe "dist/$package/bin/privacy-filter.exe"
+            cp .build/privacy-filter.cpp/build/bin/Release/*.dll "dist/$package/bin/"
           else
             cp .build/privacy-filter.cpp/build/pf-cli "dist/$package/bin/privacy-filter"
             chmod +x "dist/$package/bin/privacy-filter"
