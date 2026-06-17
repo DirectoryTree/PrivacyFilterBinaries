@@ -185,15 +185,6 @@ jobs:
             tar -czf "$package.tar.gz" "$package"
           fi
 
-      - name: Test archive
-        shell: bash
-        run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            scripts/test-archive.sh "dist/${{ matrix.artifact }}.zip"
-          else
-            scripts/test-archive.sh "dist/${{ matrix.artifact }}.tar.gz"
-          fi
-
       - name: Upload archive
         uses: actions/upload-artifact@v4
         with:
@@ -203,9 +194,45 @@ jobs:
             dist/${{ matrix.artifact }}.zip
           if-no-files-found: ignore
 
+  test:
+    name: Test ${{ matrix.artifact }}
+    needs: build
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: privacy-filter-linux-x64
+            archive: privacy-filter-linux-x64.tar.gz
+          - os: macos-15-intel
+            artifact: privacy-filter-darwin-x64
+            archive: privacy-filter-darwin-x64.tar.gz
+          - os: macos-15
+            artifact: privacy-filter-darwin-arm64
+            archive: privacy-filter-darwin-arm64.tar.gz
+          - os: windows-2022
+            artifact: privacy-filter-windows-x64
+            archive: privacy-filter-windows-x64.zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download archive
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist
+
+      - name: Test archive
+        shell: bash
+        run: scripts/test-archive.sh "dist/${{ matrix.archive }}"
+
   manifest:
     name: Manifest
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
