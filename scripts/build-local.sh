@@ -80,6 +80,16 @@ if [[ "${OS}" == "darwin" ]]; then
   install_name_tool -add_rpath "@loader_path/../lib" "${PACKAGE_DIR}/bin/privacy-filter"
 fi
 
+if [[ "${OS}" == "linux" ]]; then
+  if ! command -v patchelf >/dev/null 2>&1; then
+    echo "Missing required command for Linux packaging: patchelf" >&2
+    exit 1
+  fi
+
+  find "${BUILD_DIR}/ggml/src" -maxdepth 3 -name 'libggml*.so*' -exec cp -P {} "${PACKAGE_DIR}/lib" \;
+  patchelf --set-rpath '$ORIGIN/../lib' "${PACKAGE_DIR}/bin/privacy-filter"
+fi
+
 cp "${SOURCE_DIR}/LICENSE" "${PACKAGE_DIR}/LICENSE"
 cp "${SOURCE_DIR}/README.md" "${PACKAGE_DIR}/README.md"
 

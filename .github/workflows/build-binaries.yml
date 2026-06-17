@@ -27,22 +27,38 @@ jobs:
             artifact: privacy-filter-linux-x64
             cmake_generator: Unix Makefiles
             cmake_architecture: ''
-          - os: macos-13
+            cmake_platform: ''
+            os_name: linux
+            arch_name: x64
+          - os: macos-15-intel
             artifact: privacy-filter-darwin-x64
             cmake_generator: Unix Makefiles
             cmake_architecture: x86_64
+            cmake_platform: ''
+            os_name: darwin
+            arch_name: x64
           - os: macos-14
             artifact: privacy-filter-darwin-arm64
             cmake_generator: Unix Makefiles
             cmake_architecture: arm64
+            cmake_platform: ''
+            os_name: darwin
+            arch_name: arm64
           - os: windows-latest
             artifact: privacy-filter-windows-x64
             cmake_generator: Visual Studio 17 2022
             cmake_architecture: ''
+            cmake_platform: x64
+            os_name: windows
+            arch_name: x64
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y patchelf
 
       - name: Resolve upstream ref
         id: upstream
@@ -78,6 +94,10 @@ jobs:
             cmake_args+=("-DCMAKE_OSX_ARCHITECTURES=${{ matrix.cmake_architecture }}")
           fi
 
+          if [ -n "${{ matrix.cmake_platform }}" ]; then
+            cmake_args+=("-A" "${{ matrix.cmake_platform }}")
+          fi
+
           cmake "${cmake_args[@]}"
 
       - name: Build
@@ -110,6 +130,11 @@ jobs:
             install_name_tool -add_rpath "@loader_path/../lib" "dist/$package/bin/privacy-filter"
           fi
 
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            find .build/privacy-filter.cpp/build/ggml/src -maxdepth 3 -name 'libggml*.so*' -exec cp -P {} "dist/$package/lib" \;
+            patchelf --set-rpath '$ORIGIN/../lib' "dist/$package/bin/privacy-filter"
+          fi
+
           cp .build/privacy-filter.cpp/LICENSE "dist/$package/LICENSE"
           cp .build/privacy-filter.cpp/README.md "dist/$package/README.md"
 
@@ -120,7 +145,8 @@ jobs:
             "upstreamRepository": "https://github.com/localai-org/privacy-filter.cpp",
             "upstreamRef": "${{ steps.upstream.outputs.ref }}",
             "upstreamCommit": "$upstream_sha",
-            "os": "${{ runner.os }}",
+            "os": "${{ matrix.os_name }}",
+            "arch": "${{ matrix.arch_name }}",
             "cpuOnly": true
           }
           JSON

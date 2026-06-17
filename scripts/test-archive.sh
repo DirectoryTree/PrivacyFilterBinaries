@@ -137,4 +137,30 @@ if [[ "${OS}" == "darwin" ]]; then
   fi
 fi
 
+if [[ "${OS}" == "linux" ]]; then
+  if [[ ! -d "${PACKAGE_DIR}/lib" ]]; then
+    echo "Missing bundled Linux lib directory." >&2
+    exit 1
+  fi
+
+  if ! find "${PACKAGE_DIR}/lib" -maxdepth 1 -name 'libggml*.so*' | grep -q .; then
+    echo "Missing bundled ggml shared objects." >&2
+    exit 1
+  fi
+
+  if command -v readelf >/dev/null 2>&1; then
+    DYNAMIC_SECTION="$(readelf -d "${BINARY}")"
+
+    if [[ "${DYNAMIC_SECTION}" != *'$ORIGIN/../lib'* ]]; then
+      echo 'Missing $ORIGIN/../lib rpath.' >&2
+      exit 1
+    fi
+
+    if [[ "${DYNAMIC_SECTION}" == *'/.build/privacy-filter.cpp/build'* ]]; then
+      echo "Binary still contains build-directory rpaths." >&2
+      exit 1
+    fi
+  fi
+fi
+
 printf 'Archive test passed: %s\n' "${FILENAME}"
