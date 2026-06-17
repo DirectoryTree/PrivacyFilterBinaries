@@ -37,7 +37,7 @@ jobs:
             cmake_platform: ''
             os_name: darwin
             arch_name: x64
-          - os: macos-14
+          - os: macos-15
             artifact: privacy-filter-darwin-arm64
             cmake_generator: Unix Makefiles
             cmake_architecture: arm64
