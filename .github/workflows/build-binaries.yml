@@ -95,6 +95,12 @@ jobs:
               "    if (NOT MSVC)\n        target_compile_options(pf-cli PRIVATE -Wall -Wextra)\n    endif()",
           )
           path.write_text(text)
+
+          path = Path(".build/privacy-filter.cpp/src/model.cpp")
+          text = path.read_text()
+          text = text.replace("#include <cmath>\n", "#include <algorithm>\n#include <cmath>\n")
+          text = text.replace("M_PI", "3.14159265358979323846264338327950288")
+          path.write_text(text)
           PY
 
       - name: Configure
