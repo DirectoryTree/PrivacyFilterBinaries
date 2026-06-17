@@ -65,6 +65,8 @@ The test extracts the archive to a temporary directory, verifies the package lay
 
 The `Integration test binaries` workflow downloads a built archive, downloads the GGUF model from Hugging Face, and verifies that the binary can classify known PII text.
 
+By default it uses `LocalAI-io/privacy-filter-GGUF/resolve/main/privacy-filter-f16.gguf`, which is the smallest currently published GGUF known to work with `privacy-filter.cpp`. A smaller model URL can be supplied manually if a quantized or purpose-built test GGUF becomes available later.
+
 It runs:
 
 - after a successful `Build binaries` workflow

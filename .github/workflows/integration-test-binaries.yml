@@ -8,7 +8,7 @@ on:
         required: false
         default: ''
       model_url:
-        description: GGUF model URL.
+        description: GGUF model URL. Defaults to the smallest currently published privacy-filter.cpp-compatible GGUF.
         required: false
         default: https://huggingface.co/LocalAI-io/privacy-filter-GGUF/resolve/main/privacy-filter-f16.gguf
   workflow_run:
@@ -53,6 +53,9 @@ jobs:
 
     env:
       GH_TOKEN: ${{ github.token }}
+      # LocalAI currently publishes one English GGUF and one multilingual GGUF.
+      # The English F16 file is the smallest privacy-filter.cpp-compatible GGUF
+      # available for an end-to-end classification test.
       DEFAULT_MODEL_URL: https://huggingface.co/LocalAI-io/privacy-filter-GGUF/resolve/main/privacy-filter-f16.gguf
       INPUT_BUILD_RUN_ID: ${{ github.event.inputs.build_run_id }}
       INPUT_MODEL_URL: ${{ github.event.inputs.model_url }}
