@@ -165,6 +165,12 @@ jobs:
           if [ "${{ runner.os }}" = "Linux" ]; then
             find .build/privacy-filter.cpp/build/ggml/src -maxdepth 3 -name 'libggml*.so*' -exec cp -P {} "dist/$package/lib" \;
             patchelf --set-rpath '$ORIGIN/../lib' "dist/$package/bin/privacy-filter"
+
+            while IFS= read -r lib; do
+              if [ ! -L "$lib" ]; then
+                patchelf --set-rpath '$ORIGIN' "$lib"
+              fi
+            done < <(find "dist/$package/lib" -maxdepth 1 -name 'libggml*.so*' -type f)
           fi
 
           cp .build/privacy-filter.cpp/LICENSE "dist/$package/LICENSE"

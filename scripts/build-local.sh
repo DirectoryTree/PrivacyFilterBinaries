@@ -88,6 +88,12 @@ if [[ "${OS}" == "linux" ]]; then
 
   find "${BUILD_DIR}/ggml/src" -maxdepth 3 -name 'libggml*.so*' -exec cp -P {} "${PACKAGE_DIR}/lib" \;
   patchelf --set-rpath '$ORIGIN/../lib' "${PACKAGE_DIR}/bin/privacy-filter"
+
+  while IFS= read -r lib; do
+    if [[ ! -L "${lib}" ]]; then
+      patchelf --set-rpath '$ORIGIN' "${lib}"
+    fi
+  done < <(find "${PACKAGE_DIR}/lib" -maxdepth 1 -name 'libggml*.so*' -type f)
 fi
 
 cp "${SOURCE_DIR}/LICENSE" "${PACKAGE_DIR}/LICENSE"

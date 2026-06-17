@@ -160,6 +160,15 @@ if [[ "${OS}" == "linux" ]]; then
       echo "Binary still contains build-directory rpaths." >&2
       exit 1
     fi
+
+    while IFS= read -r lib; do
+      LIB_DYNAMIC_SECTION="$(readelf -d "${lib}")"
+
+      if [[ "${LIB_DYNAMIC_SECTION}" == *"NEEDED"* && "${LIB_DYNAMIC_SECTION}" != *'$ORIGIN'* ]]; then
+        echo "Missing \$ORIGIN rpath in bundled library: ${lib}" >&2
+        exit 1
+      fi
+    done < <(find "${PACKAGE_DIR}/lib" -maxdepth 1 -name 'libggml*.so*' -type f)
   fi
 fi
 
