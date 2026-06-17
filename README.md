@@ -1,14 +1,14 @@
 <div align="center">
-    <h1>Privacy Filter Binaries</h1>
-    <p>
-        <a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml">
-            <img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml/badge.svg?branch=master" alt="Build binaries status">
-        </a>
-        <a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml">
-            <img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml/badge.svg?branch=master" alt="Integration test binaries status">
-        </a>
-    </p>
-    <p>Prebuilt <code>privacy-filter.cpp</code> binaries for Linux, macOS, and Windows.</p>
+<h1>Privacy Filter Binaries</h1>
+<p>
+<a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml">
+<img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml/badge.svg?branch=master" alt="Build binaries status">
+</a>
+<a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml">
+<img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml/badge.svg?branch=master" alt="Integration test binaries status">
+</a>
+</p>
+<p>Prebuilt <code>privacy-filter.cpp</code> binaries for Linux, macOS, and Windows.</p>
 </div>
 
 ## Installation
