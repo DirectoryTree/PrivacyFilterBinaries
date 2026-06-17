@@ -44,7 +44,7 @@ jobs:
             cmake_platform: ''
             os_name: darwin
             arch_name: arm64
-          - os: windows-latest
+          - os: windows-2022
             artifact: privacy-filter-windows-x64
             cmake_generator: Visual Studio 17 2022
             cmake_architecture: ''
