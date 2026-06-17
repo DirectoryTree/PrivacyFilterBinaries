@@ -61,6 +61,18 @@ After building, test the archive:
 
 The test extracts the archive to a temporary directory, verifies the package layout, runs the binary, and checks that macOS archives contain the expected architecture, bundled `libggml` dylibs, and relative rpath.
 
+## Integration Test
+
+The `Integration test binaries` workflow downloads a built archive, downloads the GGUF model from Hugging Face, and verifies that the binary can classify known PII text.
+
+It runs:
+
+- after a successful `Build binaries` workflow
+- manually with an optional build run ID
+- weekly on Monday
+
+This workflow is intentionally separate from the build workflow because the model is large and depends on external network access.
+
 ## Release
 
 Run the `Build binaries` GitHub workflow manually with the upstream ref you want to build. For tagged releases, the workflow uploads archives, `manifest.json`, and `checksums.txt` to the GitHub release.

@@ -1,0 +1,122 @@
+name: Integration test binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Build binaries workflow run ID to test. Defaults to latest successful master run.
+        required: false
+        default: ''
+      model_url:
+        description: GGUF model URL.
+        required: false
+        default: https://huggingface.co/LocalAI-io/privacy-filter-GGUF/resolve/main/privacy-filter-f16.gguf
+  workflow_run:
+    workflows:
+      - Build binaries
+    types:
+      - completed
+  schedule:
+    - cron: '0 8 * * 1'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    name: Classify with ${{ matrix.artifact }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: privacy-filter-linux-x64
+            archive: privacy-filter-linux-x64.tar.gz
+          - os: macos-15-intel
+            artifact: privacy-filter-darwin-x64
+            archive: privacy-filter-darwin-x64.tar.gz
+          - os: macos-15
+            artifact: privacy-filter-darwin-arm64
+            archive: privacy-filter-darwin-arm64.tar.gz
+          - os: windows-2022
+            artifact: privacy-filter-windows-x64
+            archive: privacy-filter-windows-x64.zip
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DEFAULT_MODEL_URL: https://huggingface.co/LocalAI-io/privacy-filter-GGUF/resolve/main/privacy-filter-f16.gguf
+      INPUT_BUILD_RUN_ID: ${{ github.event.inputs.build_run_id }}
+      INPUT_MODEL_URL: ${{ github.event.inputs.model_url }}
+      WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.3
+
+      - name: Resolve build run
+        id: build-run
+        shell: bash
+        run: |
+          if [ -n "${INPUT_BUILD_RUN_ID}" ]; then
+            run_id="${INPUT_BUILD_RUN_ID}"
+          elif [ -n "${WORKFLOW_RUN_ID}" ]; then
+            run_id="${WORKFLOW_RUN_ID}"
+          else
+            run_id="$(gh run list \
+              --repo "${{ github.repository }}" \
+              --workflow "Build binaries" \
+              --branch master \
+              --status success \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId')"
+          fi
+
+          if [ -z "${run_id}" ] || [ "${run_id}" = "null" ]; then
+            echo "Could not resolve a successful Build binaries run." >&2
+            exit 1
+          fi
+
+          echo "run_id=${run_id}" >> "${GITHUB_OUTPUT}"
+
+      - name: Download binary archive
+        shell: bash
+        run: |
+          mkdir -p dist
+          gh run download "${{ steps.build-run.outputs.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name "${{ matrix.artifact }}" \
+            --dir dist
+
+      - name: Cache model
+        uses: actions/cache@v5.0.5
+        with:
+          path: .models/privacy-filter-f16.gguf
+          key: privacy-filter-f16-gguf-v1-${{ runner.os }}
+
+      - name: Download model
+        shell: bash
+        run: |
+          model_url="${INPUT_MODEL_URL:-${DEFAULT_MODEL_URL}}"
+
+          if [ ! -s .models/privacy-filter-f16.gguf ]; then
+            mkdir -p .models
+            curl --fail --location --retry 5 --retry-delay 10 \
+              --output .models/privacy-filter-f16.gguf \
+              "${model_url}"
+          fi
+
+          ls -lh .models/privacy-filter-f16.gguf
+
+      - name: Run classification test
+        shell: bash
+        run: scripts/test-classification.sh "dist/${{ matrix.archive }}" ".models/privacy-filter-f16.gguf"
