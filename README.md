@@ -1,12 +1,19 @@
 # Privacy Filter Binaries
 
-Reproducible binary builds for [`localai-org/privacy-filter.cpp`](https://github.com/localai-org/privacy-filter.cpp).
+Prebuilt `privacy-filter.cpp` binaries for Linux, macOS, and Windows.
 
-This repository builds and publishes platform-specific `pf-cli` binaries that can be consumed by PHP packages or other language wrappers. The source library is not vendored into this repository; builds clone a pinned upstream ref at build time.
+## Installation
 
-## Artifacts
+Download the archive for your platform from the latest release:
 
-Release assets are named by operating system and architecture:
+```bash
+curl -L -o privacy-filter.tar.gz \
+  https://github.com/DirectoryTree/PrivacyFilterBinaries/releases/latest/download/privacy-filter-darwin-arm64.tar.gz
+
+tar -xzf privacy-filter.tar.gz
+```
+
+Available release assets:
 
 ```text
 privacy-filter-linux-x64.tar.gz
@@ -17,70 +24,54 @@ manifest.json
 checksums.txt
 ```
 
-Each archive contains:
+The executable is located at:
 
 ```text
-bin/privacy-filter
-lib/libggml*.dylib   # macOS archives
-LICENSE
-README.md
-build-info.json
+privacy-filter-*/bin/privacy-filter
 ```
 
-On Windows, the binary is named `bin/privacy-filter.exe`.
+On Windows:
 
-## Build Locally
-
-Prerequisites:
-
-- Git
-- CMake 3.21+
-- A C++17 compiler
-
-CPU-only local build:
-
-```sh
-./scripts/build-local.sh
+```text
+privacy-filter-windows-x64/bin/privacy-filter.exe
 ```
 
-Build a specific upstream ref:
+## Setup
 
-```sh
-PRIVACY_FILTER_REF=master ./scripts/build-local.sh
+Download a compatible GGUF model:
+
+```bash
+mkdir -p models
+
+curl -L -o models/privacy-filter-f16.gguf \
+  https://huggingface.co/LocalAI-io/privacy-filter-GGUF/resolve/main/privacy-filter-f16.gguf
 ```
 
-The packaged archive is written to `dist/`.
+For automated installers, use the release manifest:
 
-## Test Locally
-
-After building, test the archive:
-
-```sh
-./scripts/test-archive.sh dist/privacy-filter-darwin-arm64.tar.gz
+```text
+https://github.com/DirectoryTree/PrivacyFilterBinaries/releases/latest/download/manifest.json
 ```
 
-The test extracts the archive to a temporary directory, verifies the package layout, runs the binary, and checks that macOS archives contain the expected architecture, bundled `libggml` dylibs, and relative rpath.
+## Usage
 
-## Integration Test
+Classify text from stdin:
 
-The `Integration test binaries` workflow downloads a built archive, downloads the GGUF model from Hugging Face, and verifies that the binary can classify known PII text.
+```bash
+echo 'Contact John Doe at jdoe@example.com from 555-0100.' \
+  | ./privacy-filter-darwin-arm64/bin/privacy-filter --classify models/privacy-filter-f16.gguf 0.5
+```
 
-By default it uses `LocalAI-io/privacy-filter-GGUF/resolve/main/privacy-filter-f16.gguf`, which is the smallest currently published GGUF known to work with `privacy-filter.cpp`. A smaller model URL can be supplied manually if a quantized or purpose-built test GGUF becomes available later.
+Example output:
 
-It runs:
-
-- after a successful `Build binaries` workflow
-- manually with an optional build run ID
-- weekly on Monday
-
-This workflow is intentionally separate from the build workflow because the model is large and depends on external network access.
-
-## Release
-
-Run the `Build binaries` GitHub workflow manually with the upstream ref you want to build. For tagged releases, the workflow uploads archives, `manifest.json`, and `checksums.txt` to the GitHub release.
-
-The PHP package should consume the release `manifest.json`, choose the matching asset for the current platform, verify the checksum, and install the binary into an application-controlled path.
-
-## Scope
-
-The first build target is CPU-only `pf-cli`. Shared-library and GPU builds can be added later as separate artifact families without changing the consumer manifest shape.
+```json
+[
+  {
+    "entity_group": "email",
+    "start": 20,
+    "end": 36,
+    "score": 0.9876,
+    "text": "jdoe@example.com"
+  }
+]
+```
