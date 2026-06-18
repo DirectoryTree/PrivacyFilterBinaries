@@ -15,7 +15,7 @@ You may install the precompiled binaries and GGUF model using the following inst
 
 ### Binary
 
-Download the archive for your platform from the latest release:
+Download the archive for your platform from the [latest release](https://github.com/DirectoryTree/PrivacyFilterBinaries/releases/latest):
 
 ```bash
 curl -L -o privacy-filter.tar.gz \
