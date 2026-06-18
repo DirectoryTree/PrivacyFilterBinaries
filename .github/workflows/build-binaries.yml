@@ -35,6 +35,13 @@ jobs:
             cmake_platform: ''
             os_name: linux
             arch_name: x64
+          - os: ubuntu-24.04-arm
+            artifact: privacy-filter-linux-arm64
+            cmake_generator: Unix Makefiles
+            cmake_architecture: ''
+            cmake_platform: ''
+            os_name: linux
+            arch_name: arm64
           - os: macos-15-intel
             artifact: privacy-filter-darwin-x64
             cmake_generator: Unix Makefiles
@@ -218,6 +225,9 @@ jobs:
           - os: ubuntu-latest
             artifact: privacy-filter-linux-x64
             archive: privacy-filter-linux-x64.tar.gz
+          - os: ubuntu-24.04-arm
+            artifact: privacy-filter-linux-arm64
+            archive: privacy-filter-linux-arm64.tar.gz
           - os: macos-15-intel
             artifact: privacy-filter-darwin-x64
             archive: privacy-filter-darwin-x64.tar.gz

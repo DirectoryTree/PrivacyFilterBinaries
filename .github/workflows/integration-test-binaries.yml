@@ -41,6 +41,9 @@ jobs:
           - os: ubuntu-latest
             artifact: privacy-filter-linux-x64
             archive: privacy-filter-linux-x64.tar.gz
+          - os: ubuntu-24.04-arm
+            artifact: privacy-filter-linux-arm64
+            archive: privacy-filter-linux-arm64.tar.gz
           - os: macos-15-intel
             artifact: privacy-filter-darwin-x64
             archive: privacy-filter-darwin-x64.tar.gz
