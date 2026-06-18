@@ -4,7 +4,7 @@
 <a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml"><img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml/badge.svg?branch=master" alt="Build binaries status"></a>
 <a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml"><img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml/badge.svg?branch=master" alt="Integration test binaries status"></a>
 </p>
-<p>Prebuilt <code>privacy-filter.cpp</code> binaries for Linux, macOS, and Windows.</p>
+<p>Prebuilt <a href="https://github.com/localai-org/privacy-filter.cpp"><code>privacy-filter.cpp</code></a> binaries for Linux, macOS, and Windows.</p>
 </div>
 
 ## Installation
