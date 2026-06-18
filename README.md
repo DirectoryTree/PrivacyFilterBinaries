@@ -9,6 +9,10 @@
 
 ## Installation
 
+You may install the precompiled binaries and GGUF model using the following instructions.
+
+> Both are required to use the `privacy-filter.cpp` command line tool. The binary is the executable that runs the classification, while the model contains the data and parameters needed for the classification process.
+
 ### Binary
 
 Download the archive for your platform from the latest release:
