@@ -26,7 +26,7 @@ tar -xzf privacy-filter.tar.gz
 
 ### Model
 
-Download the GGUF model:
+Download the [GGUF model](https://huggingface.co/LocalAI-io/privacy-filter-GGUF):
 
 ```bash
 mkdir -p models
