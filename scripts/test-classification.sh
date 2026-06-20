@@ -50,13 +50,20 @@ case "${FILENAME}" in
 esac
 
 BINARY="${TMPDIR_TEST}/${PACKAGE}/bin/privacy-filter"
+SERVE_BINARY="${TMPDIR_TEST}/${PACKAGE}/bin/privacy-filter-serve"
 
 if [[ "${OS}" == "windows" ]]; then
   BINARY="${BINARY}.exe"
+  SERVE_BINARY="${SERVE_BINARY}.exe"
 fi
 
 if [[ ! -e "${BINARY}" ]]; then
   echo "Binary does not exist: ${BINARY}" >&2
+  exit 1
+fi
+
+if [[ ! -e "${SERVE_BINARY}" ]]; then
+  echo "Serve binary does not exist: ${SERVE_BINARY}" >&2
   exit 1
 fi
 
@@ -71,6 +78,21 @@ fi
 if [[ "${OUTPUT}" == "[]" || "${OUTPUT}" == $'[\n]' ]]; then
   echo "Expected at least one classified entity." >&2
   echo "${OUTPUT}" >&2
+  exit 1
+fi
+
+REQUEST="$(printf '{"id":"test","text":"%s","threshold":%s}\n' "${TEXT}" "${THRESHOLD}")"
+SERVE_OUTPUT="$(printf '%s' "${REQUEST}" | "${SERVE_BINARY}" "${MODEL}")"
+
+if [[ "${SERVE_OUTPUT}" != *"${EXPECTED_TEXT}"* ]]; then
+  echo "Expected serve classification output to contain: ${EXPECTED_TEXT}" >&2
+  echo "${SERVE_OUTPUT}" >&2
+  exit 1
+fi
+
+if [[ "${SERVE_OUTPUT}" == *'"error"'* ]]; then
+  echo "Expected serve classification output to be successful." >&2
+  echo "${SERVE_OUTPUT}" >&2
   exit 1
 fi
 

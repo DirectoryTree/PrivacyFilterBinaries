@@ -43,12 +43,14 @@ esac
 
 PACKAGE_DIR="${TMPDIR_TEST}/${PACKAGE}"
 BINARY="${PACKAGE_DIR}/bin/privacy-filter"
+SERVE_BINARY="${PACKAGE_DIR}/bin/privacy-filter-serve"
 
 if [[ "${OS}" == "windows" ]]; then
   BINARY="${BINARY}.exe"
+  SERVE_BINARY="${SERVE_BINARY}.exe"
 fi
 
-for required in "${PACKAGE_DIR}/LICENSE" "${PACKAGE_DIR}/README.md" "${PACKAGE_DIR}/build-info.json" "${BINARY}"; do
+for required in "${PACKAGE_DIR}/LICENSE" "${PACKAGE_DIR}/README.md" "${PACKAGE_DIR}/build-info.json" "${BINARY}" "${SERVE_BINARY}"; do
   if [[ ! -e "${required}" ]]; then
     echo "Missing expected package file: ${required}" >&2
     exit 1
@@ -57,6 +59,11 @@ done
 
 if [[ "${OS}" != "windows" && ! -x "${BINARY}" ]]; then
   echo "Binary is not executable: ${BINARY}" >&2
+  exit 1
+fi
+
+if [[ "${OS}" != "windows" && ! -x "${SERVE_BINARY}" ]]; then
+  echo "Serve binary is not executable: ${SERVE_BINARY}" >&2
   exit 1
 fi
 
@@ -88,6 +95,23 @@ fi
 if [[ "${OUTPUT}" != *"usage: pf-cli --info <model.gguf>"* ]]; then
   echo "Expected usage output was not present." >&2
   echo "${OUTPUT}" >&2
+  exit 1
+fi
+
+set +e
+SERVE_OUTPUT="$("${SERVE_BINARY}" 2>&1)"
+SERVE_CODE=$?
+set -e
+
+if [[ "${SERVE_CODE}" -ne 2 ]]; then
+  echo "Expected no-argument serve binary invocation to exit 2, got ${SERVE_CODE}" >&2
+  echo "${SERVE_OUTPUT}" >&2
+  exit 1
+fi
+
+if [[ "${SERVE_OUTPUT}" != *"usage: privacy-filter-serve <model.gguf> [threshold]"* ]]; then
+  echo "Expected serve usage output was not present." >&2
+  echo "${SERVE_OUTPUT}" >&2
   exit 1
 fi
 

@@ -89,6 +89,18 @@ jobs:
           git -C .build/privacy-filter.cpp checkout "${{ steps.upstream.outputs.ref }}"
           git -C .build/privacy-filter.cpp submodule update --init --recursive
 
+      - name: Add serve mode target
+        shell: bash
+        run: |
+          cp src/privacy-filter-serve.cpp .build/privacy-filter.cpp/tools/privacy-filter-serve.cpp
+
+          cat >> .build/privacy-filter.cpp/CMakeLists.txt <<'CMAKE'
+
+          add_executable(pf-serve tools/privacy-filter-serve.cpp)
+          target_link_libraries(pf-serve PRIVATE pf)
+          target_compile_options(pf-serve PRIVATE -Wall -Wextra)
+          CMAKE
+
       - name: Patch Windows MSVC flags
         if: runner.os == 'Windows'
         shell: bash
@@ -101,6 +113,10 @@ jobs:
           text = text.replace(
               "target_compile_options(pf PRIVATE -Wall -Wextra)",
               "if (NOT MSVC)\n    target_compile_options(pf PRIVATE -Wall -Wextra)\nendif()",
+          )
+          text = text.replace(
+              "target_compile_options(pf-serve PRIVATE -Wall -Wextra)",
+              "if (NOT MSVC)\n    target_compile_options(pf-serve PRIVATE -Wall -Wextra)\nendif()",
           )
           text = text.replace(
               "    target_compile_options(pf-cli PRIVATE -Wall -Wextra)",
@@ -138,9 +154,13 @@ jobs:
 
           cmake "${cmake_args[@]}"
 
-      - name: Build
+      - name: Build CLI
         shell: bash
         run: cmake --build .build/privacy-filter.cpp/build --config Release --target pf-cli -j
+
+      - name: Build serve mode
+        shell: bash
+        run: cmake --build .build/privacy-filter.cpp/build --config Release --target pf-serve -j
 
       - name: Package
         shell: bash
@@ -150,10 +170,13 @@ jobs:
 
           if [ "${{ runner.os }}" = "Windows" ]; then
             cp .build/privacy-filter.cpp/build/Release/pf-cli.exe "dist/$package/bin/privacy-filter.exe"
+            cp .build/privacy-filter.cpp/build/Release/pf-serve.exe "dist/$package/bin/privacy-filter-serve.exe"
             cp .build/privacy-filter.cpp/build/bin/Release/*.dll "dist/$package/bin/"
           else
             cp .build/privacy-filter.cpp/build/pf-cli "dist/$package/bin/privacy-filter"
+            cp .build/privacy-filter.cpp/build/pf-serve "dist/$package/bin/privacy-filter-serve"
             chmod +x "dist/$package/bin/privacy-filter"
+            chmod +x "dist/$package/bin/privacy-filter-serve"
           fi
 
           if [ "${{ runner.os }}" = "macOS" ]; then
@@ -164,14 +187,17 @@ jobs:
               "$PWD/.build/privacy-filter.cpp/build/ggml/src/ggml-blas" \
               "$PWD/.build/privacy-filter.cpp/build/ggml/src/ggml-metal"; do
               install_name_tool -delete_rpath "$rpath" "dist/$package/bin/privacy-filter" 2>/dev/null || true
+              install_name_tool -delete_rpath "$rpath" "dist/$package/bin/privacy-filter-serve" 2>/dev/null || true
             done
 
             install_name_tool -add_rpath "@loader_path/../lib" "dist/$package/bin/privacy-filter"
+            install_name_tool -add_rpath "@loader_path/../lib" "dist/$package/bin/privacy-filter-serve"
           fi
 
           if [ "${{ runner.os }}" = "Linux" ]; then
             find .build/privacy-filter.cpp/build/ggml/src -maxdepth 3 -name 'libggml*.so*' -exec cp -P {} "dist/$package/lib" \;
             patchelf --set-rpath '$ORIGIN/../lib' "dist/$package/bin/privacy-filter"
+            patchelf --set-rpath '$ORIGIN/../lib' "dist/$package/bin/privacy-filter-serve"
 
             while IFS= read -r lib; do
               if [ ! -L "$lib" ]; then

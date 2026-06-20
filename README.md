@@ -44,4 +44,18 @@ echo 'Contact John Doe at jdoe@example.com from 555-0100.' \
   | ./privacy-filter-darwin-arm64/bin/privacy-filter --classify models/privacy-filter-f16.gguf 0.5
 ```
 
-The final argument is the classification threshold. It is the minimum confidence score an entity must meet before it is returned. Increasing the threshold returns fewer, higher-confidence entities, while decreasing it may return more entities with lower confidence.
+The final argument is the classification threshold. Only entities with a confidence score equal to or greater than the threshold will be returned.
+
+### Serve Mode
+
+Use `privacy-filter-serve` to keep the model loaded and classify multiple requests through a single long-running process:
+
+```bash
+./privacy-filter-darwin-arm64/bin/privacy-filter-serve models/privacy-filter-f16.gguf
+```
+
+The process reads one JSON request per line from stdin and writes one JSON response per line to stdout:
+
+```json
+{"id":"1","text":"Contact John Doe at jdoe@example.com.","threshold":0.5}
+```

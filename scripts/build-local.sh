@@ -38,6 +38,15 @@ git clone --recursive "${UPSTREAM_REPO}" "${SOURCE_DIR}"
 git -C "${SOURCE_DIR}" checkout "${UPSTREAM_REF}"
 git -C "${SOURCE_DIR}" submodule update --init --recursive
 
+cp "${ROOT_DIR}/src/privacy-filter-serve.cpp" "${SOURCE_DIR}/tools/privacy-filter-serve.cpp"
+
+cat >> "${SOURCE_DIR}/CMakeLists.txt" <<'CMAKE'
+
+add_executable(pf-serve tools/privacy-filter-serve.cpp)
+target_link_libraries(pf-serve PRIVATE pf)
+target_compile_options(pf-serve PRIVATE -Wall -Wextra)
+CMAKE
+
 CMAKE_ARGS=(
   -S "${SOURCE_DIR}"
   -B "${BUILD_DIR}"
@@ -59,12 +68,16 @@ fi
 cmake "${CMAKE_ARGS[@]}"
 
 cmake --build "${BUILD_DIR}" --config Release --target pf-cli -j
+cmake --build "${BUILD_DIR}" --config Release --target pf-serve -j
 
 if [[ "${OS}" == "windows" ]]; then
   cp "${BUILD_DIR}/pf-cli.exe" "${PACKAGE_DIR}/bin/privacy-filter.exe"
+  cp "${BUILD_DIR}/pf-serve.exe" "${PACKAGE_DIR}/bin/privacy-filter-serve.exe"
 else
   cp "${BUILD_DIR}/pf-cli" "${PACKAGE_DIR}/bin/privacy-filter"
+  cp "${BUILD_DIR}/pf-serve" "${PACKAGE_DIR}/bin/privacy-filter-serve"
   chmod +x "${PACKAGE_DIR}/bin/privacy-filter"
+  chmod +x "${PACKAGE_DIR}/bin/privacy-filter-serve"
 fi
 
 if [[ "${OS}" == "darwin" ]]; then
@@ -75,9 +88,11 @@ if [[ "${OS}" == "darwin" ]]; then
     "${BUILD_DIR}/ggml/src/ggml-blas" \
     "${BUILD_DIR}/ggml/src/ggml-metal"; do
     install_name_tool -delete_rpath "${rpath}" "${PACKAGE_DIR}/bin/privacy-filter" 2>/dev/null || true
+    install_name_tool -delete_rpath "${rpath}" "${PACKAGE_DIR}/bin/privacy-filter-serve" 2>/dev/null || true
   done
 
   install_name_tool -add_rpath "@loader_path/../lib" "${PACKAGE_DIR}/bin/privacy-filter"
+  install_name_tool -add_rpath "@loader_path/../lib" "${PACKAGE_DIR}/bin/privacy-filter-serve"
 fi
 
 if [[ "${OS}" == "linux" ]]; then
@@ -88,6 +103,7 @@ if [[ "${OS}" == "linux" ]]; then
 
   find "${BUILD_DIR}/ggml/src" -maxdepth 3 -name 'libggml*.so*' -exec cp -P {} "${PACKAGE_DIR}/lib" \;
   patchelf --set-rpath '$ORIGIN/../lib' "${PACKAGE_DIR}/bin/privacy-filter"
+  patchelf --set-rpath '$ORIGIN/../lib' "${PACKAGE_DIR}/bin/privacy-filter-serve"
 
   while IFS= read -r lib; do
     if [[ ! -L "${lib}" ]]; then
