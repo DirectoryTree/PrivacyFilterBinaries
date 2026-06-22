@@ -63,19 +63,22 @@ jobs:
       INPUT_BUILD_RUN_ID: ${{ github.event.inputs.build_run_id }}
       INPUT_MODEL_URL: ${{ github.event.inputs.model_url }}
       WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+      WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6.0.3
-
       - name: Resolve build run
         id: build-run
         shell: bash
         run: |
           if [ -n "${INPUT_BUILD_RUN_ID}" ]; then
             run_id="${INPUT_BUILD_RUN_ID}"
+            head_sha="$(gh run view "${run_id}" \
+              --repo "${{ github.repository }}" \
+              --json headSha \
+              --jq '.headSha')"
           elif [ -n "${WORKFLOW_RUN_ID}" ]; then
             run_id="${WORKFLOW_RUN_ID}"
+            head_sha="${WORKFLOW_RUN_HEAD_SHA}"
           else
             run_id="$(gh run list \
               --repo "${{ github.repository }}" \
@@ -85,6 +88,13 @@ jobs:
               --limit 1 \
               --json databaseId \
               --jq '.[0].databaseId')"
+
+            if [ -n "${run_id}" ] && [ "${run_id}" != "null" ]; then
+              head_sha="$(gh run view "${run_id}" \
+                --repo "${{ github.repository }}" \
+                --json headSha \
+                --jq '.headSha')"
+            fi
           fi
 
           if [ -z "${run_id}" ] || [ "${run_id}" = "null" ]; then
@@ -92,7 +102,18 @@ jobs:
             exit 1
           fi
 
+          if [ -z "${head_sha}" ] || [ "${head_sha}" = "null" ]; then
+            echo "Could not resolve the build commit for run ${run_id}." >&2
+            exit 1
+          fi
+
           echo "run_id=${run_id}" >> "${GITHUB_OUTPUT}"
+          echo "head_sha=${head_sha}" >> "${GITHUB_OUTPUT}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.3
+        with:
+          ref: ${{ steps.build-run.outputs.head_sha }}
 
       - name: Download binary archive
         shell: bash
