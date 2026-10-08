@@ -1,11 +1,21 @@
-<div align="center">
-<h1>Privacy Filter Binaries</h1>
-<p>
-<a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml"><img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml/badge.svg?branch=master" alt="Build binaries status"></a>
-<a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml"><img src="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml/badge.svg?branch=master" alt="Integration test binaries status"></a>
+<h1 align="center">Privacy Filter Binaries</h1>
+
+<p align="center">Prebuilt <a href="https://github.com/localai-org/privacy-filter.cpp"><code>privacy-filter.cpp</code></a> binaries for Linux, macOS, and Windows.</p>
+
+<p align="center">
+    <a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/build-binaries.yml"><img src="https://img.shields.io/github/actions/workflow/status/DirectoryTree/PrivacyFilterBinaries/build-binaries.yml?branch=master&amp;style=flat-square&amp;label=Build%20Binaries" alt="Build Binaries"></a>
+    <a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/actions/workflows/integration-test-binaries.yml"><img src="https://img.shields.io/github/actions/workflow/status/DirectoryTree/PrivacyFilterBinaries/integration-test-binaries.yml?branch=master&amp;style=flat-square&amp;label=Integration%20Tests" alt="Integration Tests"></a>
 </p>
-<p>Prebuilt <a href="https://github.com/localai-org/privacy-filter.cpp"><code>privacy-filter.cpp</code></a> binaries for Linux, macOS, and Windows.</p>
-</div>
+
+<p align="center">
+    <a href="#installation">Installation</a>
+    <span> · </span>
+    <a href="#usage">Usage</a>
+    <span> · </span>
+    <a href="https://github.com/DirectoryTree/PrivacyFilterBinaries/releases">Releases</a>
+</p>
+
+---
 
 ## Installation
 
